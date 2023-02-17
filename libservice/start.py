@@ -17,11 +17,6 @@ THINGSDB_HOSTLIST = os.getenv('THINGSDB_HOSTLIST', 'thingsdb:9200')
 THINGSDB_TOKEN = os.getenv('THINGSDB_TOKEN')
 THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
 
-if None in (
-        THINGSDB_TOKEN,
-):
-    raise Exception('Missing a required environment variable')
-
 
 async def _setup_ticonn():
     nodes = [
@@ -58,6 +53,9 @@ def start(collector_key: str, version: str,
           checks: Tuple[Union[CheckBase, CheckBaseMulti]],
           start_func: Optional[Callable[[AbstractEventLoop], None]] = None,
           close_func: Optional[Callable[[AbstractEventLoop], None]] = None):
+    if THINGSDB_TOKEN is None:
+        raise Exception('Missing `THINGSDB_TOKEN` environment variable')
+
     setup_logger()
     logging.warning(f"Starting {collector_key} service v{version}")
 

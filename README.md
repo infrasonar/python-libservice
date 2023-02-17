@@ -15,7 +15,7 @@ The following environment variable are required for a service to work and are al
 Environment variable | Default                      | Description
 -------------------- | ---------------------------- | ----------------
 `THINGSDB_HOSTLIST`  | `thingsdb:9200`              | ThingsDB host list.
-`THINGSDB_TOKEN`     | _empty_                      | Token for authentication.
+`THINGSDB_TOKEN`     | _empty_                      | Token for authentication **(required)**.
 `THINGSDB_SCOPE`     | `//data`                     | Collection scope for data.
 `HUB_HOST`           | `hub`                        | Hub host
 `HUB_PORT`           | `8700`                       | Hub port
@@ -28,75 +28,47 @@ Environment variable | Default                      | Description
 ## Usage
 
 ```python
-import logging
-from libservice.asset import Asset
-from libservice.probe import Probe
-from libservice.severity import Severity
-from libservice.exceptions import (
-    CheckException,
-    IgnoreResultException,
-    IgnoreCheckException,
-    IncompleteResultException,
-)
-
-__version__ = "0.1.0"
+from asyncio import AbstractEventLoop
+from typing import Tuple, Optional
+from libservice import start, Asset, CheckBase
 
 
-async def my_first_check(asset: Asset, asset_config: dict, check_config: dict):
-    """My first check.
-    Arguments:
-      asset:        Asset contains an id, name and check which should be used
-                    for logging;
-      asset_config: local configuration for this asset, for example credentials;
-      check_config: configuration for this check; contains for example the
-                    interval at which the check is running and an address of
-                    the asset to probe;
-    """
-    if "ignore_this_check_iteration":
-        # nothing will be send to InfraSonar for this check iteration;
-        raise IgnoreResultException()
+class MyCheck(CheckBase):
+    # Use CheckBaseMulti if you want to perform checks for multiple assets
+    # combined. Sometimes this can be useful as you might be able to combine
+    # multiple assets in a single request.
+    key = 'my_check'
 
-    if "no_longer_try_this_check":
-        # nothing will be send to InfraSonar for this check iteration and the
-        # check will not start again until the probe restarts or configuration
-        # has been changed;
-        raise IgnoreCheckException()
-
-    if "something_has_happened":
-        # send a check error to InfraSonar because something has happened which
-        # prevents us from building a check result; The default severity for a
-        # CheckException is MEDIUM but this can be overwritten;
-        raise CheckException("something went wrong", severity=Severity.LOW)
-
-    if "something_unexpected_has_happened":
-        # other exceptions will be converted to CheckException, MEDIUM severity
-        raise Exception("something went wrong")
-
-    # A check result may have multiple types, items, and/or metrics
-    result = {"myType": [{"name": "my item"}]}
-
-    if "result_is_incomplete":
-        # optionally, IncompleteResultException can be given another severity;
-        # the default severity is LOW.
-        raise IncompleteResultException('missing type x', result)
-
-    # Use the asset in logging; this will include asset info and the check key
-    logging.info(f"log something; {asset}")
-
-    # Return the check result
-    return result
+    @classmethod
+    async def run(cls, ts: float, asset: Asset) -> Tuple[
+            Optional[dict], Optional[dict]]:
+        # Return with the state and optionally an error dict which can be
+        # created using CheckException(my_error_message).to_dict().
+        # Alternatively, you can rase a CheckException. The return error is
+        # especially useful with CheckBaseMulti where only a single asset might
+        # fail.
+        return {
+          'my_type': [
+            {'name': 'my_item'}
+          ]
+        }, None
 
 
-if __name__ == "__main__":
-    checks = {
-        "myFirstCheck": my_first_check,
-    }
+def start_func(loop: AbstractEventLoop):
+    pass  # optional init function
 
-    # Initialize the probe with a name, version and checks
-    probe = Probe("myProbe", __version__, checks)
+def close_func(loop: AbstractEventLoop):
+    pass  # optional close function
 
-    # Start the probe
-    probe.start()
+
+if __name__ == '__main__':
+    start(
+      collector_key='my_server',
+      version='0.1.0',
+      checks=(MyCheck, ),
+      start_func=start_func,
+      close_func=close_func)
+
 ```
 
 ## ASCII item names
@@ -107,56 +79,3 @@ When your _name_ is not guaranteed to be ASCII compatible, the following code re
 ```python
 name = name.encode('ascii', errors='replace').decode()
 ```
-
-## Config
-
-When using a `password` or `secret` within a _config_ section, the library
-will encrypt the value so it will be unreadable by users. This must not be
-regarded as true encryption as the encryption key is publicly available.
-
-Example yaml configuration:
-
-```yaml
-exampleProbe:
-  config:
-    username: alice
-    password: secret_password
-  assets:
-  - id: 123
-    config:
-      username: bob
-      password: "my secret"
-  - id: [456, 789]
-    config:
-      username: charlie
-      password: "my other secret"
-otherProbe:
-  use: exampleProbe  # use the exampleProbe config for this probe
-```
-
-## Dry run
-
-Create a yaml file, for example _(test.yaml)_:
-
-```yaml
-asset:
-  name: "foo.local"
-  check: "system"
-  config:
-    address: "192.168.1.2"
-```
-
-Run the probe with the `DRY_RUN` environment variable set the the yaml file above.
-
-```
-DRY_RUN=test.yaml python main.py
-```
-
-> Note: Optionally an asset _id_ might be given which can by used to find asset configuration in the local asset configuration file. Asset _config_ is also optional.
-
-### Dump to JSON
-A dry run writes all log to _stderr_ and only the JSON dump is written to _stdout_. Therefore, writing the output to JSON is easy:
-```
-DRY_RUN=test.yaml python main.py > dump.json
-```
-# python-libservice

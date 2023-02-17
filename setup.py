@@ -16,7 +16,7 @@ except IOError:
 
 install_requires = [
     'colorlog',
-    'cryptography'
+    'cryptography',
     'msgpack',
     'python-thingsdb',
 ]
