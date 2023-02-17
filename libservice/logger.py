@@ -42,9 +42,6 @@ def setup_logger():
             datefmt=_LOG_DATE_FMT,
             style='%')
 
-    logger = logging.getLogger('siridb.connector')
-    logger.setLevel(logging.INFO)
-
     logger = logging.getLogger()
     logger.setLevel(_MAP_LOG_LEVELS[_LOG_LEVEL.upper()])
     ch = logging.StreamHandler()
