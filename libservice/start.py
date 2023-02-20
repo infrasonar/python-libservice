@@ -35,7 +35,7 @@ async def _setup_hub_connection():
 
 async def _setup_service_room(collector_key, checks):
     service_room = ServiceRoom('.ev_service.id()', THINGSDB_SCOPE)
-    service_room.init('platform', checks, set_log_level, False)
+    service_room.init(collector_key, checks, set_log_level, False)
     await service_room.join(ticonn)
     await service_room.load_all()
     asyncio.ensure_future(service_room.run_loop())
