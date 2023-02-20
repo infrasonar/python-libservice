@@ -101,7 +101,8 @@ class ServiceRoom(Room):
             }
         }
         try:
-            await hub.send_check_data(path, check_data)
+            print(path, check_data)
+            # await hub.send_check_data(path, check_data)
         except Exception as e:
             msg = str(e) or type(e).__name__
             logging.error(f'Failed to send data to hub: {msg}; {asset}')
