@@ -23,7 +23,7 @@ Environment variable | Default                      | Description
 `LOG_LEVEL`          | `warning`                    | Log level _(error, warning, info, debug)_.
 `LOG_COLORIZED`      | `0`                          | Either 0 (=disabled) or 1 (=enabled).
 `LOG_FMT`            | `%y%m...`                    | Default format is `%y%m%d %H:%M:%S`.
-
+`DRY_RUN`            | _empty_                      | If enabled, result data will be printed to stdout instead of send to the hub.
 
 ## Usage
 

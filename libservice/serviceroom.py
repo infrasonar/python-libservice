@@ -3,6 +3,8 @@ import functools
 import logging
 import time
 import os
+import json
+import sys
 from collections import defaultdict
 from thingsdb.room import Room
 from thingsdb.room import event
@@ -15,6 +17,7 @@ from .check import CheckBase, CheckBaseMulti
 
 HUB_REQ_SLEEP = .001
 SLEEP_TIME = int(os.getenv('SLEEP_TIME', 2))
+DRY_RUN = os.getenv('DRY_RUN', '0') != '0'
 assert 60 >= SLEEP_TIME > 0
 
 
@@ -101,8 +104,13 @@ class ServiceRoom(Room):
             }
         }
         try:
-            print(path, check_data)
-            # await hub.send_check_data(path, check_data)
+            if DRY_RUN:
+                output = json.dumps(check_data, indent=2)
+                print('-'*80, file=sys.stderr)
+                print(output)
+                print('', file=sys.stderr)
+            else:
+                await hub.send_check_data(path, check_data)
         except Exception as e:
             msg = str(e) or type(e).__name__
             logging.error(f'Failed to send data to hub: {msg}; {asset}')
