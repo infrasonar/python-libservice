@@ -6,7 +6,7 @@ twine upload --repository pypitest dist/libservice-x.x.x.tar.gz
 twine upload --repository pypi dist/libservice-x.x.x.tar.gz
 """
 from setuptools import setup, find_packages
-from libservice.version import __version__ as version
+from version import __version__ as version
 
 try:
     with open('README.md', 'r') as f:
