@@ -67,7 +67,8 @@ if __name__ == '__main__':
       version='0.1.0',
       checks=(MyCheck, ),
       start_func=start_func,
-      close_func=close_func)
+      close_func=close_func,
+      no_count=False)  # When True, the check(s) do not count (counter + lastseen)
 
 ```
 
