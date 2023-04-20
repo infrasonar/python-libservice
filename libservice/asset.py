@@ -26,6 +26,8 @@ class Asset:
 
     async def decrypt(self, secret: str):
         if self.key is None:
-            self.key = await ticonn.run('get_encryption_key', self.asset_id)
+            self.key = await ticonn.run(
+                'get_encryption_key',
+                self.container_id)
 
         return Fernet(self.key).decrypt(base64.b64decode(secret)).decode()
