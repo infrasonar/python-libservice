@@ -24,6 +24,9 @@ class Asset:
     def __repr__(self) -> str:
         return f"asset: {self.asset_id} check: {self.check_id}"
 
+    def get_interval(self) -> int:
+        return self.config['_interval']
+
     async def decrypt(self, secret: str):
         if self.key is None:
             self.key = await ticonn.run(

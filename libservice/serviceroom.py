@@ -25,13 +25,15 @@ class ServiceRoom(Room):
 
     def init(self, collector_key: str,
              checks: Tuple[Union[CheckBase, CheckBaseMulti]],
-             on_log_level: Callable[[int], None], no_count: bool = False):
+             on_log_level: Callable[[int], None], no_count: bool = False,
+             max_timeout: float = 300.0):
         self.collector_key = collector_key
         self._checks = {check.key: check for check in checks}
         self._last = int(time.time())-1
         self._scheduled: Dict[int, Dict[int, dict]] = defaultdict(dict)
         self._on_log_level = on_log_level
         self._no_count = no_count
+        self._max_timeout = max_timeout
 
     async def load_all(self):
         self._query = functools.partial(self.client.query, scope=self.scope)
@@ -121,7 +123,12 @@ class ServiceRoom(Room):
     async def _run_multi(self, check: CheckBaseMulti, assets: List[Asset]):
         ts = time.time()
         try:
-            results = await check.run(ts, assets)
+            results = await asyncio.wait_for(
+                check.run(ts, assets),
+                timeout=self._max_timeout)
+        except asyncio.TimeoutError:
+            error = CheckException('timed out').to_dict()
+            results = [(None, error)] * len(assets)
         except CheckException as e:
             error = e.to_dict()
             results = [(None, error)] * len(assets)
@@ -137,8 +144,13 @@ class ServiceRoom(Room):
     async def _run(self, check: CheckBase, asset: Asset):
         ts = time.time()
         no_count = self._no_count
+        timeout = min(0.8 * asset.get_interval(), self._max_timeout)
         try:
-            result, error = await check.run(ts, asset)
+            result, error = await asyncio.wait_for(
+                check.run(ts, asset),
+                timeout=timeout)
+        except asyncio.TimeoutError:
+            result, error = None, CheckException('timed out').to_dict()
         except NoCountException as e:
             result, error, no_count = e.result, None, True  # Force True
         except CheckException as e:
