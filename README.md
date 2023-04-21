@@ -46,7 +46,11 @@ class MyCheck(CheckBase):
         # created using CheckException(my_error_message).to_dict().
         # Alternatively, you can rase a CheckException. The return error is
         # especially useful with CheckBaseMulti where only a single asset might
-        # fail.
+        # fail or to return an error together with the result.
+        # For example:
+        #
+        #   return state, CheckException('Incomplete result').to_dict()
+        #
         return {
           'my_type': [
             {'name': 'my_item'}
