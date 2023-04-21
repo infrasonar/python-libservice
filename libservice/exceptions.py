@@ -1,4 +1,5 @@
 from .severity import Severity
+from typing import Optional
 
 
 class CheckException(Exception):
@@ -13,3 +14,13 @@ class CheckException(Exception):
             "error": self.__str__(),
             "severity": self.severity.value
         }
+
+
+class NoCountException(Exception):
+    """NoCountException must only be raised withing non-multi CheckBase
+    class and cannot be used with CheckBaseMulti;
+    """
+    def __init__(self, result: dict):
+        assert isinstance(result, dict)
+        self.result = result
+        super().__init__('No count exception')

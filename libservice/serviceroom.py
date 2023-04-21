@@ -10,7 +10,7 @@ from thingsdb.room import Room
 from thingsdb.room import event
 from typing import List, Dict, Tuple, Callable, Union, Optional
 from .hub import hub
-from .exceptions import CheckException
+from .exceptions import CheckException, NoCountException
 from .asset import Asset
 from .check import CheckBase, CheckBaseMulti
 
@@ -90,9 +90,10 @@ class ServiceRoom(Room):
             await self._load(cid)
 
     async def _send_to_hub(self, asset: Asset, result: Optional[dict],
-                           error: Optional[dict], ts: float):
+                           error: Optional[dict], ts: float, no_count: bool):
         if error:
             logging.error(error)
+
         path = asset.asset_id, asset.check_id
         check_data = {
             'result': result,
@@ -100,7 +101,7 @@ class ServiceRoom(Room):
             'framework': {
                 'duration': time.time() - ts,
                 'timestamp': int(ts),
-                'no_count': self._no_count,
+                'no_count': no_count,
             }
         }
         try:
@@ -130,20 +131,23 @@ class ServiceRoom(Room):
             results = [(None, error)] * len(assets)
 
         for asset, (result, error) in zip(assets, results):
-            await self._send_to_hub(asset, result, error, ts)
+            await self._send_to_hub(asset, result, error, ts, self._no_count)
             await asyncio.sleep(HUB_REQ_SLEEP)
 
     async def _run(self, check: CheckBase, asset: Asset):
         ts = time.time()
+        no_count = self._no_count
         try:
             result, error = await check.run(ts, asset)
+        except NoCountException as e:
+            result, error, no_count = e.result, None, True  # Force True
         except CheckException as e:
             result, error = None, e.to_dict()
         except Exception as e:
             msg = str(e) or type(e).__name__
             result, error = None, CheckException(msg).to_dict()
 
-        await self._send_to_hub(asset, result, error, ts)
+        await self._send_to_hub(asset, result, error, ts, no_count)
 
     async def run_loop(self):
         while True:
