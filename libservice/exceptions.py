@@ -16,9 +16,9 @@ class CheckException(Exception):
         }
 
 
-class NoCountException(Exception):
-    """NoCountException must only be raised withing non-multi CheckBase
-    class and cannot be used with CheckBaseMulti;
+class NoCountException(Exception):  # Only to be used within CheckBase
+    """NoCountException must ONLY be raised withing non-multi CheckBase class!!
+    This exception cannot be used with CheckBaseMulti;
     """
     def __init__(self, result: dict):
         assert isinstance(result, dict)
