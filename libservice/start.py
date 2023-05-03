@@ -33,9 +33,14 @@ async def _setup_hub_connection():
     await hub.connect(HUB_HOST, HUB_PORT)
 
 
-async def _setup_svc_room(collector_key, checks, no_count):
+async def _setup_svc_room(collector_key, checks, no_count, max_timeout):
     service_room = ServiceRoom('.ev_service.id()', THINGSDB_SCOPE)
-    service_room.init(collector_key, checks, set_log_level, no_count)
+    service_room.init(
+        collector_key,
+        checks,
+        set_log_level,
+        no_count,
+        max_timeout)
     await service_room.join(ticonn)
     await service_room.load_all()
     asyncio.ensure_future(service_room.run_loop())
@@ -53,7 +58,7 @@ def start(collector_key: str, version: str,
           checks: Tuple[Union[CheckBase, CheckBaseMulti]],
           start_func: Optional[Callable[[AbstractEventLoop], None]] = None,
           close_func: Optional[Callable[[AbstractEventLoop], None]] = None,
-          no_count: bool = False):
+          no_count: bool = False, max_timeout: float = 300.0):
     if THINGSDB_TOKEN is None:
         raise Exception('Missing `THINGSDB_TOKEN` environment variable')
 
@@ -67,7 +72,11 @@ def start(collector_key: str, version: str,
 
     loop.run_until_complete(_setup_ticonn())
     loop.run_until_complete(_setup_hub_connection())
-    loop.run_until_complete(_setup_svc_room(collector_key, checks, no_count))
+    loop.run_until_complete(_setup_svc_room(
+        collector_key,
+        checks,
+        no_count,
+        max_timeout))
 
     signal.signal(signal.SIGINT, _stop)
     signal.signal(signal.SIGTERM, _stop)
