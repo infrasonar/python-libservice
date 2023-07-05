@@ -129,3 +129,12 @@ class HubClient:
             partid=path[0],  # asset_id
         )
         return self._request(pkg)
+
+    def get_alerts_count(self, container_ids: list,
+                         asset_ids: Optional[list] = None,
+                         user_id: Optional[int] = None) -> Awaitable[list]:
+        pkg = Package.make(
+            ApiProtocol.PROTO_REQ_ALERTS_COUNT,
+            data=[container_ids, asset_ids, user_id]
+        )
+        return self._request(pkg)
