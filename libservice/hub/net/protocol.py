@@ -84,7 +84,7 @@ class Protocol(asyncio.Protocol):
         try:
             future, task = self._requests.pop(pid)
         except KeyError:
-            logging.error('timed out package id not found: {}'.format(
+            logging.error('Timed out package id not found: {}'.format(
                 self._package.pid))
             return None
 
@@ -95,7 +95,7 @@ class Protocol(asyncio.Protocol):
         future, task = self._requests.pop(pkg.pid, (None, None))
         if future is None:
             logging.error(
-                f'got a response on pkg id {pkg.pid} but the original '
+                f'Got a response on pkg id {pkg.pid} but the original '
                 'request has probably timed-out'
             )
             return

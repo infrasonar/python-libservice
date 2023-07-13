@@ -94,7 +94,7 @@ class ServiceRoom(Room):
     async def _send_to_hub(self, asset: Asset, result: Optional[dict],
                            error: Optional[dict], ts: float, no_count: bool):
         if error:
-            logging.error(error)
+            logging.error(f'Error: {error}; {asset}')
 
         path = asset.asset_id, asset.check_id
         check_data = {
@@ -118,7 +118,7 @@ class ServiceRoom(Room):
             msg = str(e) or type(e).__name__
             logging.error(f'Failed to send data to hub: {msg}; {asset}')
         else:
-            logging.debug(f'successfully send data to hub; {asset}')
+            logging.debug(f'Successfully send data to hub; {asset}')
 
     async def _run_multi(self, check: CheckBaseMulti, assets: List[Asset]):
         ts = time.time()

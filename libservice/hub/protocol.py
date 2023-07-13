@@ -49,6 +49,6 @@ class ApiProtocol(Protocol):
     }):
         handle = _map.get(pkg.tp)
         if handle is None:
-            logging.error(f'unhandled package type: {pkg.tp}')
+            logging.error(f'Unhandled package type: {pkg.tp}')
         else:
             handle(self, pkg)

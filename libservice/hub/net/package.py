@@ -74,7 +74,7 @@ class Package(object):
         try:
             self.data = msgpack.unpackb(self.body)
         except Exception:
-            logging.error('failed to unpack package id: {0.pid}'.format(self))
+            logging.error('Failed to unpack package id: {0.pid}'.format(self))
             raise
         return self.data
 
