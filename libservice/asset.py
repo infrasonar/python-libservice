@@ -41,6 +41,12 @@ class Asset:
 
         return Fernet(self.key).decrypt(base64.b64decode(secret)).decode()
 
+    async def get_other_asset_configs(self, asset_id: int):
+        return await ticonn.run(
+            "get_asset_configs",
+            self.container_id,
+            asset_id)
+
     def get_lock(self) -> Lock:
         if self._lock is None:
             self._lock = Lock()

@@ -1,5 +1,4 @@
 from .severity import Severity
-from typing import Optional
 
 
 class CheckException(Exception):
