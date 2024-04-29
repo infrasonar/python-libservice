@@ -36,6 +36,9 @@ class ServiceRoom(Room):
         self._no_count = no_count
         self._max_timeout = max_timeout
 
+    def get_asset_ids(self) -> Tuple[int]:
+        return tuple(asset_id for (_, asset_id) in self._scheduled)
+
     async def load_all(self):
         self._query = functools.partial(self.client.query, scope=self.scope)
         assert self.collector_key, 'run init before load_all()'
