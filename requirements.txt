@@ -1,4 +1,4 @@
-colorlog==6.7.0
-cryptography==41.0.3
-msgpack==1.0.5
-python-thingsdb==1.0.6
+colorlog==6.8.2
+cryptography==42.0.5
+msgpack==1.0.8
+python-thingsdb==1.1.1

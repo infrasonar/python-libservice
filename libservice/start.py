@@ -25,7 +25,7 @@ async def _setup_ticonn():
     token = THINGSDB_TOKEN
     ticonn.set_default_scope(THINGSDB_SCOPE)
     await ticonn.connect_pool(nodes, token)
-    logging.info(f'Connected to ThingsDB (ticonn)')
+    logging.info('Connected to ThingsDB (ticonn)')
 
 
 async def _setup_hub_connection():
