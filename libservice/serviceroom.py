@@ -30,7 +30,8 @@ class ServiceRoom(Room):
         self.collector_key = collector_key
         self._checks = {check.key: check for check in checks}
         self._last = int(time.time())-1
-        self._scheduled: Dict[int, Dict[int, dict]] = defaultdict(dict)
+        self._scheduled: Dict[Tuple[int, int], Dict[int, dict]] = \
+            defaultdict(dict)
         self._on_log_level = on_log_level
         self._no_count = no_count
         self._max_timeout = max_timeout

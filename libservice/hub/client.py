@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Optional, Dict, List, Awaitable
+from typing import Optional, Awaitable
 from .net.package import Package
 from .protocol import ApiProtocol
 
