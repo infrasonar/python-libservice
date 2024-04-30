@@ -15,6 +15,7 @@ from .asset import Asset
 from .check import CheckBase, CheckBaseMulti
 
 
+THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
 HUB_REQ_SLEEP = .001
 SLEEP_TIME = int(os.getenv('SLEEP_TIME', 2))
 DRY_RUN = os.getenv('DRY_RUN', '0') != '0'
@@ -23,9 +24,11 @@ assert 60 >= SLEEP_TIME > 0
 
 class ServiceRoom(Room):
 
-    def init(self, collector_key: str,
+    def init(self,
+             collector_key: str,
              checks: Tuple[Union[CheckBase, CheckBaseMulti]],
-             on_log_level: Callable[[int], None], no_count: bool = False,
+             on_log_level: Callable[[int], None],
+             no_count: bool = False,
              max_timeout: float = 300.0):
         self.collector_key = collector_key
         self._checks = {check.key: check for check in checks}
@@ -36,8 +39,12 @@ class ServiceRoom(Room):
         self._no_count = no_count
         self._max_timeout = max_timeout
 
-    def get_asset_ids(self) -> Tuple[int]:
-        return tuple(asset_id for (_, asset_id) in self._scheduled)
+    def get_container_id(self, asset_id: int) -> Optional[int]:
+        """Returns a dict with asset_id:container_id key value pairs."""
+        for (container_id, _asset_id) in self._scheduled.keys():
+            if asset_id == _asset_id:
+                return container_id
+        return None
 
     async def load_all(self):
         self._query = functools.partial(self.client.query, scope=self.scope)
@@ -219,3 +226,6 @@ class ServiceRoom(Room):
         for asset_id in asset_ids:
             key = (container_id, asset_id)
             self._scheduled.pop(key, None)
+
+
+service_room = ServiceRoom('.ev_service.id()', THINGSDB_SCOPE)

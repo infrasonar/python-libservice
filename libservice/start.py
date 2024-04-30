@@ -5,7 +5,7 @@ import os
 from asyncio import AbstractEventLoop
 from typing import Tuple, Union, Optional, Callable
 from .check import CheckBase, CheckBaseMulti
-from .serviceroom import ServiceRoom
+from .serviceroom import service_room
 from .hub import hub
 from .logger import setup_logger, set_log_level
 from .ticonn import ticonn
@@ -34,7 +34,6 @@ async def _setup_hub_connection():
 
 
 async def _setup_svc_room(collector_key, checks, no_count, max_timeout):
-    service_room = ServiceRoom('.ev_service.id()', THINGSDB_SCOPE)
     service_room.init(
         collector_key,
         checks,
