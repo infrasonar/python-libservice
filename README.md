@@ -84,3 +84,17 @@ When your _name_ is not guaranteed to be ASCII compatible, the following code re
 ```python
 name = name.encode('ascii', errors='replace').decode()
 ```
+
+## Check is an asset Id is scheduled
+
+In some cases, the dmarc service as an example, you might want to check if an asset Id is scheduled and ask for the container Id.
+As the Asset() instance is only available during the check process, you need to verify this in a different way.
+
+```python
+from libservice.serviceroom import service_room
+
+container_id = service_room.get_container_id(asset_id)
+if container_id is None:
+    # missing asset ID
+    ...
+```
