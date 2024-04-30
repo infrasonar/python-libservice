@@ -40,7 +40,9 @@ class ServiceRoom(Room):
         self._max_timeout = max_timeout
 
     def get_container_id(self, asset_id: int) -> Optional[int]:
-        """Returns a dict with asset_id:container_id key value pairs."""
+        """Returns a container Id for a given asset Id if the asset is
+        scheduled; This can be used to check if an asset is scheduled as
+        otherwise the return value or this function is None;"""
         for (container_id, _asset_id) in self._scheduled.keys():
             if asset_id == _asset_id:
                 return container_id
