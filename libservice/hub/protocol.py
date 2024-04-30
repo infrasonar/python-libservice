@@ -8,8 +8,10 @@ class ApiProtocol(Protocol):
 
     PROTO_REQ_DATA = 0x00
     PROTO_REQ_ALERTS_COUNT = 0x02
+    PROTO_REQ_GET_DATA = 0x11
 
     PROTO_RES_ALERTS_COUNT = 0x81
+    PROTO_RES_GET_DATA = 0x8b
     PROTO_RES_ERR = 0xe0
     PROTO_RES_OK = 0xe1
 
@@ -44,6 +46,7 @@ class ApiProtocol(Protocol):
 
     def on_package_received(self, pkg, _map={
         PROTO_RES_ALERTS_COUNT: _on_res_data,
+        PROTO_RES_GET_DATA: _on_res_data,
         PROTO_RES_ERR: _on_res_err,
         PROTO_RES_OK: _on_res_ok,
     }):

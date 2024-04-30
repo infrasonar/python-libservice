@@ -138,3 +138,12 @@ class HubClient:
             data=[container_ids, asset_ids, user_id]
         )
         return self._request(pkg)
+
+    def get_check_data(self, asset_id: int, check_id: int,
+                       raw: bool) -> Awaitable:
+        pkg = Package.make(
+            ApiProtocol.PROTO_REQ_GET_DATA,
+            data=[check_id, raw],
+            partid=asset_id,
+        )
+        return self._request(pkg)
