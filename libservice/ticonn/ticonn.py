@@ -1,4 +1,5 @@
 from thingsdb.client import Client
+from ..loop import loop
 
 
-ticonn = Client()
+ticonn = Client(loop=loop)
