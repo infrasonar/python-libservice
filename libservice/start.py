@@ -9,6 +9,7 @@ from .serviceroom import service_room
 from .hub import hub
 from .logger import setup_logger, set_log_level
 from .ticonn import ticonn
+from .loop import loop
 
 
 HUB_HOST = os.getenv('HUB_HOST', 'hub')
@@ -63,8 +64,6 @@ def start(collector_key: str, version: str,
 
     setup_logger()
     logging.warning(f"Starting {collector_key} service v{version}")
-
-    loop = asyncio.get_event_loop()
 
     if start_func is not None:
         start_func(loop)
