@@ -23,7 +23,7 @@ async def _setup_ticonn():
     nodes = [
         tuple(node.split(':'))
         for node in THINGSDB_HOSTLIST.replace(';', ',').split(',')]
-    token = THINGSDB_TOKEN
+    token: str = THINGSDB_TOKEN  # type: ignore
     ticonn.set_default_scope(THINGSDB_SCOPE)
     await ticonn.connect_pool(nodes, token)
     logging.info('Connected to ThingsDB (ticonn)')

@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from thingsdb.room import Room
 from thingsdb.room import event
-from typing import List, Dict, Tuple, Callable, Union, Optional
+from typing import List, Dict, Tuple, Callable, Union, Optional, Type
 from .hub import hub
 from .exceptions import CheckException, NoCountException
 from .asset import Asset
@@ -26,14 +26,14 @@ class ServiceRoom(Room):
 
     def init(self,
              collector_key: str,
-             checks: Tuple[Union[CheckBase, CheckBaseMulti]],
-             on_log_level: Callable[[int], None],
+             checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]]],
+             on_log_level: Callable[[str], None],
              no_count: bool = False,
              max_timeout: float = 300.0):
         self.collector_key = collector_key
         self._checks = {check.key: check for check in checks}
         self._last = int(time.time())-1
-        self._scheduled: Dict[Tuple[int, int], Dict[int, dict]] = \
+        self._scheduled: Dict[Tuple[int, int], Dict[int, tuple]] = \
             defaultdict(dict)
         self._on_log_level = on_log_level
         self._no_count = no_count
@@ -133,7 +133,7 @@ class ServiceRoom(Room):
         else:
             logging.debug(f'Successfully send data to hub; {asset}')
 
-    async def _run_multi(self, check: CheckBaseMulti, assets: List[Asset]):
+    async def _run_multi(self, check: Type[CheckBaseMulti], assets: List[Asset]):
         ts = time.time()
         try:
             results = await asyncio.wait_for(
@@ -154,7 +154,7 @@ class ServiceRoom(Room):
             await self._send_to_hub(asset, result, error, ts, self._no_count)
             await asyncio.sleep(HUB_REQ_SLEEP)
 
-    async def _run(self, check: CheckBase, asset: Asset):
+    async def _run(self, check: Type[CheckBase], asset: Asset):
         ts = time.time()
         no_count = self._no_count
         timeout = min(0.8 * asset.get_interval(), self._max_timeout)
@@ -206,7 +206,6 @@ class ServiceRoom(Room):
                         service_data: Tuple[int, tuple]):
         logging.debug('on upsert asset')
         asset_id, services = service_data
-        self._scheduled.pop(asset_id, None)
         key = (container_id, asset_id)
         self._scheduled.pop(key, None)
 
