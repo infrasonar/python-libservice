@@ -9,6 +9,7 @@ from .serviceroom import service_room
 from .hub import hub
 from .logger import setup_logger, set_log_level
 from .ticonn import ticonn
+from .loop import loop
 
 
 HUB_HOST = os.getenv('HUB_HOST', 'hub')
@@ -22,7 +23,7 @@ async def _setup_ticonn():
     nodes = [
         tuple(node.split(':'))
         for node in THINGSDB_HOSTLIST.replace(';', ',').split(',')]
-    token = THINGSDB_TOKEN
+    token: str = THINGSDB_TOKEN  # type: ignore
     ticonn.set_default_scope(THINGSDB_SCOPE)
     await ticonn.connect_pool(nodes, token)
     logging.info('Connected to ThingsDB (ticonn)')
@@ -63,8 +64,6 @@ def start(collector_key: str, version: str,
 
     setup_logger()
     logging.warning(f"Starting {collector_key} service v{version}")
-
-    loop = asyncio.get_event_loop()
 
     if start_func is not None:
         start_func(loop)

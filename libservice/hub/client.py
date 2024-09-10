@@ -4,12 +4,13 @@ import random
 from typing import Optional, Awaitable
 from .net.package import Package
 from .protocol import ApiProtocol
+from ..loop import loop
 
 
 class HubClient:
 
     def __init__(self, auto_reconnect: bool = True):
-        self._loop = asyncio.get_event_loop()
+        self._loop = loop
         self._protocol = None
         self._reconnect = auto_reconnect
         self._reconnecting = False
