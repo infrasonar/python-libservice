@@ -133,7 +133,8 @@ class ServiceRoom(Room):
         else:
             logging.debug(f'Successfully send data to hub; {asset}')
 
-    async def _run_multi(self, check: Type[CheckBaseMulti], assets: List[Asset]):
+    async def _run_multi(self, check: Type[CheckBaseMulti],
+                         assets: List[Asset]):
         ts = time.time()
         try:
             results = await asyncio.wait_for(
