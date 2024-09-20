@@ -36,6 +36,7 @@ class Protocol(asyncio.Protocol):
     def request(self, pkg: Package,
                 timeout: Union[None, float, int] = None
                 ) -> asyncio.Future:
+        assert self.transport is not None
         self._pid += 1
         self._pid %= 0x10000
 
@@ -84,8 +85,8 @@ class Protocol(asyncio.Protocol):
         try:
             future, task = self._requests.pop(pid)
         except KeyError:
-            logging.error('Timed out package id not found: {}'.format(
-                self._package.pid))
+            logging.error(
+                f'Timed out package id not found: {pid}')
             return None
 
         future.set_exception(TimeoutError(

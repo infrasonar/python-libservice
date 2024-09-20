@@ -27,7 +27,7 @@ class Package(object):
     def make(
         cls,
         tp: int,
-        data: bytes = b'',
+        data: Any = b'',
         pid: int = 0,
         partid: int = 0,
         is_binary: bool = False,
@@ -52,7 +52,7 @@ class Package(object):
             self.tp,
             self.tp ^ 0xff)
 
-        return header + self.body
+        return header + (b'' if self.body is None else self.body)
 
     def extract_data_from(self, barray: bytearray):
         self.body = None

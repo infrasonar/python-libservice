@@ -46,7 +46,7 @@ class HubClient:
 
     def reconnect(self) -> Optional[asyncio.Future]:
         if self._reconnecting:
-            return
+            return None
         self._reconnecting = True
         return asyncio.ensure_future(self._reconnect_loop())
 
@@ -72,6 +72,7 @@ class HubClient:
 
     async def _reconnect_loop(self):
         try:
+            assert self._pool is not None
             wait_time = 1
             timeout = 2
             protocol = self._protocol
@@ -108,6 +109,7 @@ class HubClient:
                 continue
 
             try:
+                assert self._protocol is not None
                 res = await self._protocol.request(pkg, timeout=10)
             except Exception as e:
                 logging.error(
@@ -121,6 +123,7 @@ class HubClient:
     async def _write(self, pkg):
         if not self.is_connected():
             raise ConnectionError('no connection')
+        assert self._protocol is not None
         return await self._protocol.request(pkg, timeout=10)
 
     def send_check_data(self, path: list, check_data: dict) -> Awaitable:
