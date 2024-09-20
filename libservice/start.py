@@ -3,7 +3,7 @@ import logging
 import signal
 import os
 from asyncio import AbstractEventLoop
-from typing import Tuple, Union, Optional, Callable
+from typing import Tuple, Union, Optional, Callable, Type
 from .check import CheckBase, CheckBaseMulti
 from .serviceroom import service_room
 from .hub import hub
@@ -20,10 +20,11 @@ THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
 
 
 async def _setup_ticonn():
+    assert isinstance(THINGSDB_TOKEN, str)
     nodes = [
         tuple(node.split(':'))
         for node in THINGSDB_HOSTLIST.replace(';', ',').split(',')]
-    token: str = THINGSDB_TOKEN  # type: ignore
+    token: str = THINGSDB_TOKEN
     ticonn.set_default_scope(THINGSDB_SCOPE)
     await ticonn.connect_pool(nodes, token)
     logging.info('Connected to ThingsDB (ticonn)')
@@ -55,7 +56,7 @@ def _stop(signame, *args):
 
 
 def start(collector_key: str, version: str,
-          checks: Tuple[Union[CheckBase, CheckBaseMulti]],
+          checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]], ...],
           start_func: Optional[Callable[[AbstractEventLoop], None]] = None,
           close_func: Optional[Callable[[AbstractEventLoop], None]] = None,
           no_count: bool = False, max_timeout: float = 300.0):

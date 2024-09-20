@@ -13,7 +13,7 @@ class Asset:
     asset_id: int
     check_id: int
     config: dict
-    key: Optional[str]
+    key: Optional[bytes]
     lock: Optional[Lock]
 
     def __init__(self, container_id: int, asset_id: int, check_id: int,
@@ -38,7 +38,9 @@ class Asset:
             self.key = await ticonn.run(
                 'get_encryption_key',
                 self.container_id)
+            assert isinstance(self.key, bytes)
 
+        assert self.key is not None, 'no encryption key'
         return Fernet(self.key).decrypt(base64.b64decode(secret)).decode()
 
     async def get_other_asset_configs(self, asset_id: int):

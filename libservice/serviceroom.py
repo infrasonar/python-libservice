@@ -26,7 +26,7 @@ class ServiceRoom(Room):
 
     def init(self,
              collector_key: str,
-             checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]]],
+             checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]], ...],
              on_log_level: Callable[[str], None],
              no_count: bool = False,
              max_timeout: float = 300.0):
@@ -49,6 +49,7 @@ class ServiceRoom(Room):
         return None
 
     async def load_all(self):
+        assert self.client is not None
         self._query = functools.partial(self.client.query, scope=self.scope)
         assert self.collector_key, 'run init before load_all()'
         root_id, root = await self._query("""//ti
@@ -223,7 +224,7 @@ class ServiceRoom(Room):
                 self._scheduled[key][check_id] = (check_key, config)
 
     @event('unset-assets')
-    def on_unset_assets(self, container_id: int, asset_ids: Tuple[int]):
+    def on_unset_assets(self, container_id: int, asset_ids: Tuple[int, ...]):
         logging.debug('on unset assets')
         for asset_id in asset_ids:
             key = (container_id, asset_id)

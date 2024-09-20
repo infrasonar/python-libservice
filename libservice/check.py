@@ -13,7 +13,8 @@ class CheckBase(abc.ABC):
             raise NotImplementedError('key must be type str')
         return super().__init_subclass__(**kwargs)
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     async def run(cls, ts: float, asset: Asset) -> Tuple[
             Optional[dict], Optional[dict]]:
         ...
@@ -29,7 +30,8 @@ class CheckBaseMulti(abc.ABC):
             raise NotImplementedError('key must be type str')
         return super().__init_subclass__(**kwargs)
 
-    @abc.abstractclassmethod
+    @classmethod
+    @abc.abstractmethod
     async def run(cls, ts: float, assets: List[Asset]) -> List[
             Tuple[Optional[dict], Optional[dict]]]:
         ...
