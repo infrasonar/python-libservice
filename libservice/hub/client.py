@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Optional, Awaitable
+from typing import Optional, Awaitable, Tuples
 from .net.package import Package
 from .protocol import ApiProtocol
 from ..loop import loop
@@ -126,7 +126,7 @@ class HubClient:
         assert self._protocol is not None
         return await self._protocol.request(pkg, timeout=10)
 
-    def send_check_data(self, path: list, check_data: dict) -> Awaitable:
+    def send_check_data(self, path: Tuple[int, ...], check_data: dict) -> Awaitable:
         pkg = Package.make(
             ApiProtocol.PROTO_REQ_DATA,
             data=[path, check_data],
