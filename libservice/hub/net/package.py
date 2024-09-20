@@ -20,7 +20,7 @@ class Package(object):
         if self.tp != checkbit ^ 255:
             raise ValueError('invalid checkbit')
         self.total = self.__class__.st_package.size + self.length
-        self.body = None
+        self.body: Optional[bytearray] = None
         self.data = None
 
     @classmethod

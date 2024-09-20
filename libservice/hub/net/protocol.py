@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Union, Optional
+from typing import Union, Optional, Tuple, Dict
 from .package import Package
 
 
@@ -11,15 +11,17 @@ class Protocol(asyncio.Protocol):
     def __init__(self):
         super().__init__()
         self._buffered_data = bytearray()
-        self._package = None
-        self._requests = dict()
+        self._package: Optional[Package] = None
+        self._requests: Dict[int, Tuple[asyncio.Future,
+                                        Optional[asyncio.Task]]] = dict()
         self._pid = 0
-        self.transport = None
+        self.transport: Optional[asyncio.Transport] = None
 
     def connection_made(self, transport: asyncio.BaseTransport):
         '''
         override asyncio.Protocol
         '''
+        assert isinstance(transport, asyncio.Transport)
         self.transport = transport
 
     def connection_lost(self, exc: Optional[Exception]):
@@ -68,9 +70,9 @@ class Protocol(asyncio.Protocol):
             try:
                 self._package.extract_data_from(self._buffered_data)
             except KeyError as e:
-                logging.error('Unsupported package received: {}'.format(e))
+                logging.error(f'Unsupported package received: {e}')
             except Exception as e:
-                logging.exception(e)
+                logging.exception('')
                 # empty the byte-array to recover from this error
                 self._buffered_data.clear()
             else:
@@ -85,14 +87,13 @@ class Protocol(asyncio.Protocol):
         try:
             future, task = self._requests.pop(pid)
         except KeyError:
-            logging.error(
-                f'Timed out package id not found: {pid}')
+            logging.error(f'Timed out package id not found: {pid}')
             return None
 
         future.set_exception(TimeoutError(
             'request timed out on package id {}'.format(pid)))
 
-    def _get_future(self, pkg: Package) -> asyncio.Future:
+    def _get_future(self, pkg: Package) -> Optional[asyncio.Future]:
         future, task = self._requests.pop(pkg.pid, (None, None))
         if future is None:
             logging.error(
@@ -100,5 +101,6 @@ class Protocol(asyncio.Protocol):
                 'request has probably timed-out'
             )
             return
-        task.cancel()
+        if task is not None:
+            task.cancel()
         return future

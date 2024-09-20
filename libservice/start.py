@@ -20,10 +20,11 @@ THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
 
 
 async def _setup_ticonn():
+    assert isinstance(THINGSDB_TOKEN, str)
     nodes = [
         tuple(node.split(':'))
         for node in THINGSDB_HOSTLIST.replace(';', ',').split(',')]
-    token: str = THINGSDB_TOKEN  # type: ignore
+    token: str = THINGSDB_TOKEN
     ticonn.set_default_scope(THINGSDB_SCOPE)
     await ticonn.connect_pool(nodes, token)
     logging.info('Connected to ThingsDB (ticonn)')
