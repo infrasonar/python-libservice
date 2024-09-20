@@ -49,6 +49,7 @@ class ServiceRoom(Room):
         return None
 
     async def load_all(self):
+        assert self.client is not None
         self._query = functools.partial(self.client.query, scope=self.scope)
         assert self.collector_key, 'run init before load_all()'
         root_id, root = await self._query("""//ti

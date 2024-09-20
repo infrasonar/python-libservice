@@ -39,6 +39,7 @@ class Asset:
                 'get_encryption_key',
                 self.container_id)
 
+        assert self.key is not None, 'no encryption key'
         return Fernet(self.key).decrypt(base64.b64decode(secret)).decode()
 
     async def get_other_asset_configs(self, asset_id: int):

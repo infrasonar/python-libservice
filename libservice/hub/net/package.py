@@ -20,14 +20,14 @@ class Package(object):
         if self.tp != checkbit ^ 255:
             raise ValueError('invalid checkbit')
         self.total = self.__class__.st_package.size + self.length
-        self.body = None
+        self.body: Optional[bytearray] = None
         self.data = None
 
     @classmethod
     def make(
         cls,
         tp: int,
-        data: bytes = b'',
+        data: Any = b'',
         pid: int = 0,
         partid: int = 0,
         is_binary: bool = False,
@@ -52,6 +52,7 @@ class Package(object):
             self.tp,
             self.tp ^ 0xff)
 
+        assert self.body is not None
         return header + self.body
 
     def extract_data_from(self, barray: bytearray):

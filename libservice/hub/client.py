@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Optional, Awaitable
+from typing import Optional, Awaitable, Tuple
 from .net.package import Package
 from .protocol import ApiProtocol
 from ..loop import loop
@@ -26,7 +26,7 @@ class HubClient:
     def is_connected(self) -> bool:
         return self._protocol is not None and self._protocol.is_connected()
 
-    def connect_pool(self, pool: list) -> asyncio.Future:
+    def connect_pool(self, pool: list) -> Optional[asyncio.Future]:
         assert self.is_connected() is False
         assert self._reconnecting is False
         assert len(pool), 'pool must contain at least one node'
@@ -38,7 +38,7 @@ class HubClient:
         return self.reconnect()
 
     def connect(self, host: str, port: int = 8700,
-                timeout: Optional[int] = 5) -> asyncio.Future:
+                timeout: int = 5) -> Awaitable:
         assert self.is_connected() is False
         self._pool = ((host, port),)
         self._pool_idx = 0
@@ -50,7 +50,8 @@ class HubClient:
         self._reconnecting = True
         return asyncio.ensure_future(self._reconnect_loop())
 
-    async def _connect(self, timeout=5):
+    async def _connect(self, timeout: int = 5):
+        assert self._pool is not None
         host, port = self._pool[self._pool_idx]
         try:
             conn = self._loop.create_connection(
@@ -71,6 +72,7 @@ class HubClient:
             self.reconnect()
 
     async def _reconnect_loop(self):
+        assert self._pool is not None
         try:
             wait_time = 1
             timeout = 2
@@ -108,6 +110,7 @@ class HubClient:
                 continue
 
             try:
+                assert self._protocol is not None
                 res = await self._protocol.request(pkg, timeout=10)
             except Exception as e:
                 logging.error(
@@ -121,9 +124,11 @@ class HubClient:
     async def _write(self, pkg):
         if not self.is_connected():
             raise ConnectionError('no connection')
+        assert self._protocol is not None
         return await self._protocol.request(pkg, timeout=10)
 
-    def send_check_data(self, path: list, check_data: dict) -> Awaitable:
+    def send_check_data(self, path: Tuple[int, int],
+                        check_data: dict) -> Awaitable:
         pkg = Package.make(
             ApiProtocol.PROTO_REQ_DATA,
             data=[path, check_data],
@@ -133,7 +138,7 @@ class HubClient:
 
     def get_alerts_count(self, container_ids: list,
                          asset_ids: Optional[list] = None,
-                         user_id: Optional[int] = None) -> Awaitable[list]:
+                         user_id: Optional[int] = None) -> Awaitable:
         pkg = Package.make(
             ApiProtocol.PROTO_REQ_ALERTS_COUNT,
             data=[container_ids, asset_ids, user_id]
