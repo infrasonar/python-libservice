@@ -55,7 +55,7 @@ def _stop(signame, *args):
 
 
 def start(collector_key: str, version: str,
-          checks: Tuple[Union[CheckBase, CheckBaseMulti]],
+          checks: Tuple[Union[CheckBase, CheckBaseMulti], ...],
           start_func: Optional[Callable[[AbstractEventLoop], None]] = None,
           close_func: Optional[Callable[[AbstractEventLoop], None]] = None,
           no_count: bool = False, max_timeout: float = 300.0):
