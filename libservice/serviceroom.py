@@ -26,7 +26,7 @@ class ServiceRoom(Room):
 
     def init(self,
              collector_key: str,
-             checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]]],
+             checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]], ...],
              on_log_level: Callable[[str], None],
              no_count: bool = False,
              max_timeout: float = 300.0):
@@ -223,7 +223,7 @@ class ServiceRoom(Room):
                 self._scheduled[key][check_id] = (check_key, config)
 
     @event('unset-assets')
-    def on_unset_assets(self, container_id: int, asset_ids: Tuple[int]):
+    def on_unset_assets(self, container_id: int, asset_ids: Tuple[int, ...]):
         logging.debug('on unset assets')
         for asset_id in asset_ids:
             key = (container_id, asset_id)
