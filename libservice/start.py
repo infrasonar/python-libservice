@@ -19,11 +19,20 @@ THINGSDB_TOKEN = os.getenv('THINGSDB_TOKEN')
 THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
 
 
+def ti_nodes_from_str(node_str: str) -> list[str | tuple[str, int]]:
+    nodes: list[str | tuple[str, int]] = []
+    for node in node_str.replace(';', ',').split(','):
+        arr = node.split(':')
+        if len(arr) == 1:
+            nodes.append(arr[0])
+        elif len(arr) == 2:
+            nodes.append((arr[0], int(arr[1])))
+    return nodes
+
+
 async def _setup_ticonn():
     assert isinstance(THINGSDB_TOKEN, str)
-    nodes = [
-        tuple(node.split(':'))
-        for node in THINGSDB_HOSTLIST.replace(';', ',').split(',')]
+    nodes = ti_nodes_from_str(THINGSDB_HOSTLIST)
     token: str = THINGSDB_TOKEN
     ticonn.set_default_scope(THINGSDB_SCOPE)
     await ticonn.connect_pool(nodes, token)
