@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from thingsdb.room import Room
 from thingsdb.room import event
-from typing import Callable, Type
+from typing import Callable
 from .hub import hub
 from .exceptions import CheckException, NoCountException
 from .asset import Asset
@@ -26,7 +26,7 @@ class ServiceRoom(Room):
 
     def init(self,
              collector_key: str,
-             checks: tuple[Type[CheckBase] | Type[CheckBaseMulti], ...],
+             checks: tuple[type[CheckBase] | type[CheckBaseMulti], ...],
              on_log_level: Callable[[str], None],
              no_count: bool = False,
              max_timeout: float = 300.0):
@@ -150,7 +150,7 @@ class ServiceRoom(Room):
         else:
             logging.debug(f'Successfully send data to hub; {asset}')
 
-    async def _run_multi(self, check: Type[CheckBaseMulti],
+    async def _run_multi(self, check: type[CheckBaseMulti],
                          assets: list[Asset]):
         ts = time.time()
         try:
@@ -173,7 +173,7 @@ class ServiceRoom(Room):
                                     check.use_unchanged)
             await asyncio.sleep(HUB_REQ_SLEEP)
 
-    async def _run(self, check: Type[CheckBase], asset: Asset):
+    async def _run(self, check: type[CheckBase], asset: Asset):
         ts = time.time()
         no_count = self._no_count
         timeout = min(0.8 * asset.get_interval(), self._max_timeout)
