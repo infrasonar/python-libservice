@@ -38,6 +38,7 @@ class ServiceRoom(Room):
         self._on_log_level = on_log_level
         self._no_count = no_count
         self._max_timeout = max_timeout
+        self._prev_checks: dict[tuple[int, int], dict] = {}
 
     def get_container_id(self, asset_id: int) -> int | None:
         """Returns a container Id for a given asset Id if the asset is
@@ -105,8 +106,18 @@ class ServiceRoom(Room):
         for cid in children:
             await self._load(cid)
 
+    def _unchanged(self, path: tuple, result: dict | None) -> bool:
+        if result is None:
+            self._prev_checks.pop(path, None)
+            return False
+        if self._prev_checks.get(path) == result:
+            return True
+        self._prev_checks[path] = result
+        return False
+
     async def _send_to_hub(self, asset: Asset, result: dict | None,
-                           error: dict | None, ts: float, no_count: bool):
+                           error: dict | None, ts: float, no_count: bool,
+                           use_unchanged: bool):
         if error:
             logging.error(f'Error: {error}; {asset}')
 
@@ -120,6 +131,11 @@ class ServiceRoom(Room):
                 'no_count': no_count,
             }
         }
+        if use_unchanged and self._unchanged(path, result):
+            check_data['framework']['unchanged'] = True
+        else:
+            check_data['result'] = result
+
         try:
             if DRY_RUN:
                 output = json.dumps(check_data, indent=2)
@@ -153,7 +169,8 @@ class ServiceRoom(Room):
             results = [(None, error)] * len(assets)
 
         for asset, (result, error) in zip(assets, results):
-            await self._send_to_hub(asset, result, error, ts, self._no_count)
+            await self._send_to_hub(asset, result, error, ts, self._no_count,
+                                    check.use_unchanged)
             await asyncio.sleep(HUB_REQ_SLEEP)
 
     async def _run(self, check: Type[CheckBase], asset: Asset):
@@ -174,7 +191,8 @@ class ServiceRoom(Room):
             msg = str(e) or type(e).__name__
             result, error = None, CheckException(msg).to_dict()
 
-        await self._send_to_hub(asset, result, error, ts, no_count)
+        await self._send_to_hub(asset, result, error, ts, no_count,
+                                check.use_unchanged)
 
     async def run_loop(self):
         while True:
