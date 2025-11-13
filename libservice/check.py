@@ -1,6 +1,5 @@
 import abc
 from .asset import Asset
-from typing import Tuple, List, Optional
 
 
 class CheckBase(abc.ABC):
@@ -15,8 +14,8 @@ class CheckBase(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    async def run(cls, ts: float, asset: Asset) -> Tuple[
-            Optional[dict], Optional[dict]]:
+    async def run(cls, ts: float, asset: Asset) -> tuple[
+            dict | None, dict | None]:
         ...
 
 
@@ -32,6 +31,6 @@ class CheckBaseMulti(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    async def run(cls, ts: float, assets: List[Asset]) -> List[
-            Tuple[Optional[dict], Optional[dict]]]:
+    async def run(cls, ts: float, assets: list[Asset]) -> list[
+            tuple[dict | None, dict | None]]:
         ...

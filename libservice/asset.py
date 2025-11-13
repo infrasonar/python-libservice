@@ -1,6 +1,5 @@
 import base64
 from asyncio import Lock
-from typing import Optional
 from cryptography.fernet import Fernet
 from .ticonn import ticonn
 
@@ -13,8 +12,8 @@ class Asset:
     asset_id: int
     check_id: int
     config: dict
-    key: Optional[bytes]
-    lock: Optional[Lock]
+    key: bytes | None
+    lock: Lock | None
 
     def __init__(self, container_id: int, asset_id: int, check_id: int,
                  config: dict):

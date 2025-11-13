@@ -29,7 +29,6 @@ Environment variable | Default                      | Description
 
 ```python
 from asyncio import AbstractEventLoop
-from typing import Tuple, Optional
 from libservice import start, Asset, CheckBase
 
 
@@ -40,8 +39,8 @@ class MyCheck(CheckBase):
     key = 'my_check'
 
     @classmethod
-    async def run(cls, ts: float, asset: Asset) -> Tuple[
-            Optional[dict], Optional[dict]]:
+    async def run(cls, ts: float, asset: Asset) -> tuple[
+            dict | None, dict | None]:
         # Return with the state and optionally an error dict which can be
         # created using CheckException(my_error_message).to_dict().
         # Alternatively, you can rase a CheckException. The return error is
