@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Callable
+from typing import Callable
 from .net.package import Package
 from .net.protocol import Protocol
 
@@ -19,7 +19,7 @@ class ApiProtocol(Protocol):
         super().__init__()
         self.set_connection_lost(connection_lost)
 
-    def connection_lost(self, exc: Optional[Exception]):
+    def connection_lost(self, exc: Exception | None):
         super().connection_lost(exc)
         self._connection_lost()
 

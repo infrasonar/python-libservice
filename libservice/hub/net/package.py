@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 import msgpack
 import struct
-from typing import Any, Optional
+from typing import Any
 
 
 class Package(object):
@@ -11,7 +11,7 @@ class Package(object):
 
     st_package = struct.Struct('<QIHBB')
 
-    def __init__(self, barray: Optional[bytearray] = None):
+    def __init__(self, barray: bytearray | None = None):
         if barray is None:
             return
 
@@ -20,7 +20,7 @@ class Package(object):
         if self.tp != checkbit ^ 255:
             raise ValueError('invalid checkbit')
         self.total = self.__class__.st_package.size + self.length
-        self.body: Optional[bytearray] = None
+        self.body: bytearray | None = None
         self.data = None
 
     @classmethod

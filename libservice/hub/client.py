@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Optional, Awaitable, Tuple
+from typing import Awaitable
 from .net.package import Package
 from .protocol import ApiProtocol
 from ..loop import loop
@@ -26,7 +26,7 @@ class HubClient:
     def is_connected(self) -> bool:
         return self._protocol is not None and self._protocol.is_connected()
 
-    def connect_pool(self, pool: list) -> Optional[asyncio.Future]:
+    def connect_pool(self, pool: list) -> asyncio.Future | None:
         assert self.is_connected() is False
         assert self._reconnecting is False
         assert len(pool), 'pool must contain at least one node'
@@ -44,7 +44,7 @@ class HubClient:
         self._pool_idx = 0
         return self._connect(timeout=timeout)
 
-    def reconnect(self) -> Optional[asyncio.Future]:
+    def reconnect(self) -> asyncio.Future | None:
         if self._reconnecting:
             return None
         self._reconnecting = True
@@ -128,7 +128,7 @@ class HubClient:
         assert self._protocol is not None
         return await self._protocol.request(pkg, timeout=10)
 
-    def send_check_data(self, path: Tuple[int, int],
+    def send_check_data(self, path: tuple[int, int],
                         check_data: dict) -> Awaitable:
         pkg = Package.make(
             ApiProtocol.PROTO_REQ_DATA,
@@ -138,8 +138,8 @@ class HubClient:
         return self._request(pkg)
 
     def get_alerts_count(self, container_ids: list,
-                         asset_ids: Optional[list] = None,
-                         user_id: Optional[int] = None) -> Awaitable:
+                         asset_ids: list[int] | None = None,
+                         user_id: int | None = None) -> Awaitable:
         pkg = Package.make(
             ApiProtocol.PROTO_REQ_ALERTS_COUNT,
             data=[container_ids, asset_ids, user_id]

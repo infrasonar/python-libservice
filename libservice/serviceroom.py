@@ -8,11 +8,12 @@ import sys
 from collections import defaultdict
 from thingsdb.room import Room
 from thingsdb.room import event
-from typing import List, Dict, Tuple, Callable, Union, Optional, Type
+from typing import Callable
 from .hub import hub
 from .exceptions import CheckException, NoCountException
 from .asset import Asset
 from .check import CheckBase, CheckBaseMulti
+from .utils import order
 
 
 THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
@@ -26,20 +27,21 @@ class ServiceRoom(Room):
 
     def init(self,
              collector_key: str,
-             checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]], ...],
+             checks: tuple[type[CheckBase] | type[CheckBaseMulti], ...],
              on_log_level: Callable[[str], None],
              no_count: bool = False,
              max_timeout: float = 300.0):
         self.collector_key = collector_key
         self._checks = {check.key: check for check in checks}
         self._last = int(time.time())-1
-        self._scheduled: Dict[Tuple[int, int], Dict[int, tuple]] = \
+        self._scheduled: dict[tuple[int, int], dict[int, tuple]] = \
             defaultdict(dict)
         self._on_log_level = on_log_level
         self._no_count = no_count
         self._max_timeout = max_timeout
+        self._prev_checks: dict[tuple[int, int], dict] = {}
 
-    def get_container_id(self, asset_id: int) -> Optional[int]:
+    def get_container_id(self, asset_id: int) -> int | None:
         """Returns a container Id for a given asset Id if the asset is
         scheduled; This can be used to check if an asset is scheduled as
         otherwise the return value or this function is None;"""
@@ -105,8 +107,21 @@ class ServiceRoom(Room):
         for cid in children:
             await self._load(cid)
 
-    async def _send_to_hub(self, asset: Asset, result: Optional[dict],
-                           error: Optional[dict], ts: float, no_count: bool):
+    def _unchanged(self, path: tuple, result: dict | None) -> bool:
+        if result is None:
+            self._prev_checks.pop(path, None)
+            return False
+        if self._prev_checks.get(path) == result:
+            return True
+
+        order(result)
+
+        self._prev_checks[path] = result
+        return False
+
+    async def _send_to_hub(self, asset: Asset, result: dict | None,
+                           error: dict | None, ts: float, no_count: bool,
+                           use_unchanged: bool):
         if error:
             logging.error(f'Error: {error}; {asset}')
 
@@ -120,6 +135,12 @@ class ServiceRoom(Room):
                 'no_count': no_count,
             }
         }
+        if use_unchanged and self._unchanged(path, result):
+            logging.debug(f'using unchanged; {asset}')
+            check_data['framework']['unchanged'] = True
+        else:
+            check_data['result'] = result
+
         try:
             if DRY_RUN:
                 output = json.dumps(check_data, indent=2)
@@ -134,8 +155,8 @@ class ServiceRoom(Room):
         else:
             logging.debug(f'Successfully send data to hub; {asset}')
 
-    async def _run_multi(self, check: Type[CheckBaseMulti],
-                         assets: List[Asset]):
+    async def _run_multi(self, check: type[CheckBaseMulti],
+                         assets: list[Asset]):
         ts = time.time()
         try:
             results = await asyncio.wait_for(
@@ -153,10 +174,11 @@ class ServiceRoom(Room):
             results = [(None, error)] * len(assets)
 
         for asset, (result, error) in zip(assets, results):
-            await self._send_to_hub(asset, result, error, ts, self._no_count)
+            await self._send_to_hub(asset, result, error, ts, self._no_count,
+                                    check.use_unchanged)
             await asyncio.sleep(HUB_REQ_SLEEP)
 
-    async def _run(self, check: Type[CheckBase], asset: Asset):
+    async def _run(self, check: type[CheckBase], asset: Asset):
         ts = time.time()
         no_count = self._no_count
         timeout = min(0.8 * asset.get_interval(), self._max_timeout)
@@ -174,7 +196,8 @@ class ServiceRoom(Room):
             msg = str(e) or type(e).__name__
             result, error = None, CheckException(msg).to_dict()
 
-        await self._send_to_hub(asset, result, error, ts, no_count)
+        await self._send_to_hub(asset, result, error, ts, no_count,
+                                check.use_unchanged)
 
     async def run_loop(self):
         while True:
@@ -205,7 +228,7 @@ class ServiceRoom(Room):
 
     @event('upsert-asset')
     def on_upsert_asset(self, container_id: int,
-                        service_data: Tuple[int, tuple]):
+                        service_data: tuple[int, tuple]):
         logging.debug('on upsert asset')
         asset_id, services = service_data
         key = (container_id, asset_id)
@@ -224,7 +247,7 @@ class ServiceRoom(Room):
                 self._scheduled[key][check_id] = (check_key, config)
 
     @event('unset-assets')
-    def on_unset_assets(self, container_id: int, asset_ids: Tuple[int, ...]):
+    def on_unset_assets(self, container_id: int, asset_ids: tuple[int, ...]):
         logging.debug('on unset assets')
         for asset_id in asset_ids:
             key = (container_id, asset_id)

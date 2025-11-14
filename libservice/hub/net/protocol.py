@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import Union, Optional, Tuple, Dict
 from .package import Package
 
 
@@ -11,11 +10,11 @@ class Protocol(asyncio.Protocol):
     def __init__(self):
         super().__init__()
         self._buffered_data = bytearray()
-        self._package: Optional[Package] = None
-        self._requests: Dict[int, Tuple[asyncio.Future,
-                                        Optional[asyncio.Task]]] = dict()
+        self._package: Package | None = None
+        self._requests: dict[int, tuple[asyncio.Future,
+                                        asyncio.Task | None]] = dict()
         self._pid = 0
-        self.transport: Optional[asyncio.Transport] = None
+        self.transport: asyncio.Transport | None = None
 
     def connection_made(self, transport: asyncio.BaseTransport):
         '''
@@ -24,7 +23,7 @@ class Protocol(asyncio.Protocol):
         assert isinstance(transport, asyncio.Transport)
         self.transport = transport
 
-    def connection_lost(self, exc: Optional[Exception]):
+    def connection_lost(self, exc: Exception | None):
         '''
         override asyncio.Protocol
         '''
@@ -36,7 +35,7 @@ class Protocol(asyncio.Protocol):
         return self.transport is not None
 
     def request(self, pkg: Package,
-                timeout: Union[None, float, int] = None
+                timeout: float | int | None = None
                 ) -> asyncio.Future:
         assert self.transport is not None
         self._pid += 1
@@ -82,7 +81,7 @@ class Protocol(asyncio.Protocol):
     def on_package_received(self, pkg: Package):
         raise NotImplementedError
 
-    async def _timer(self, pid: int, timeout: Union[float, int]):
+    async def _timer(self, pid: int, timeout: float | int):
         await asyncio.sleep(timeout)
         try:
             future, task = self._requests.pop(pid)
@@ -93,7 +92,7 @@ class Protocol(asyncio.Protocol):
         future.set_exception(TimeoutError(
             'request timed out on package id {}'.format(pid)))
 
-    def _get_future(self, pkg: Package) -> Optional[asyncio.Future]:
+    def _get_future(self, pkg: Package) -> asyncio.Future | None:
         future, task = self._requests.pop(pkg.pid, (None, None))
         if future is None:
             logging.error(

@@ -3,7 +3,7 @@ import logging
 import signal
 import os
 from asyncio import AbstractEventLoop
-from typing import Tuple, Union, Optional, Callable, Type
+from typing import Callable
 from .check import CheckBase, CheckBaseMulti
 from .serviceroom import service_room
 from .hub import hub
@@ -65,9 +65,9 @@ def _stop(signame, *args):
 
 
 def start(collector_key: str, version: str,
-          checks: Tuple[Union[Type[CheckBase], Type[CheckBaseMulti]], ...],
-          start_func: Optional[Callable[[AbstractEventLoop], None]] = None,
-          close_func: Optional[Callable[[AbstractEventLoop], None]] = None,
+          checks: tuple[type[CheckBase] | type[CheckBaseMulti], ...],
+          start_func: Callable[[AbstractEventLoop], None] | None = None,
+          close_func: Callable[[AbstractEventLoop], None] | None = None,
           no_count: bool = False, max_timeout: float = 300.0):
     if THINGSDB_TOKEN is None:
         raise Exception('Missing `THINGSDB_TOKEN` environment variable')
