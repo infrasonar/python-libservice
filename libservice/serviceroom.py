@@ -13,6 +13,7 @@ from .hub import hub
 from .exceptions import CheckException, NoCountException
 from .asset import Asset
 from .check import CheckBase, CheckBaseMulti
+from .utils import order
 
 
 THINGSDB_SCOPE = os.getenv('THINGSDB_SCOPE', '//data')
@@ -112,6 +113,9 @@ class ServiceRoom(Room):
             return False
         if self._prev_checks.get(path) == result:
             return True
+
+        order(result)
+
         self._prev_checks[path] = result
         return False
 
@@ -132,6 +136,7 @@ class ServiceRoom(Room):
             }
         }
         if use_unchanged and self._unchanged(path, result):
+            logging.debug(f'using unchanged; {asset}')
             check_data['framework']['unchanged'] = True
         else:
             check_data['result'] = result
