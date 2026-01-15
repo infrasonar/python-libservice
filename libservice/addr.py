@@ -103,7 +103,7 @@ if __name__ == "__main__":
     ):
         try:
             r(addr_check(addr))
-        except Exception:
+        except AddrErr:
             pass
         else:
             raise Exception(f'Exception not raised for addr: {addr}')
