@@ -76,7 +76,7 @@ async def addr_check(addr: str):
 
         return  # OK
 
-    raise InvalidAddrErr("Unknown/Invalid address: '{addr}'")
+    raise InvalidAddrErr(f"Unknown/Invalid address: '{addr}'")
 
 
 if __name__ == "__main__":
