@@ -55,7 +55,6 @@ def get_dns_info(hostname) -> list[str]:
 
 
 def addr_check(addr: str):
-    # Special cases which are fine to use
     if addr.lower().startswith('http://integration/'):
         return  # The only internal call which is allowed
 
