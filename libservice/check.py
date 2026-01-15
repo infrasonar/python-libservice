@@ -4,7 +4,7 @@ from .asset import Asset
 
 class CheckBase(abc.ABC):
     key: str  # Check key (must not be changed)
-    use_unchanged: bool = False
+    use_unchanged: bool = False  # Must be False for almost all service checks
 
     def __init_subclass__(cls, **kwargs):
         if not hasattr(cls, 'key'):
@@ -22,7 +22,7 @@ class CheckBase(abc.ABC):
 
 class CheckBaseMulti(abc.ABC):
     key: str  # Check key (must not be changed)
-    use_unchanged: bool = False
+    use_unchanged: bool = False  # Must be False for almost all service checks
 
     def __init_subclass__(cls, **kwargs):
         if not hasattr(cls, 'key'):

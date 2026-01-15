@@ -1,0 +1,105 @@
+import socket
+import urllib.parse
+import ipaddress
+import socket
+
+
+class AddrErr(Exception):
+    pass
+
+
+class PrivateAddrErr(AddrErr):
+    pass
+
+
+class NoIpAddrErr(AddrErr):
+    pass
+
+
+class ResolveAddrErr(AddrErr):
+    pass
+
+
+class InvalidAddrErr(AddrErr):
+    pass
+
+
+def check_ip_address(
+        addr: ipaddress.IPv4Address | ipaddress.IPv6Address):
+    if addr.is_private:
+        raise PrivateAddrErr(f"Error: Private IP address: {addr}")
+
+
+def get_dns_info(hostname) -> list[str]:
+    try:
+        results = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC)
+        ip_addresses = []
+        ip_addresses = []
+
+        for result in results:
+            family, _, _, _, sockaddr = result
+            address = sockaddr[0]
+
+            if family == socket.AF_INET:
+                ip_addresses.append(address)
+            elif family == socket.AF_INET6:
+                ip_addresses.append(address)
+
+        if not ip_addresses:
+            raise NoIpAddrErr(f"Error: No IP address found for '{hostname}'")
+
+        return ip_addresses
+    except Exception as e:
+        msg = str(e) or type(e).__name__
+        raise ResolveAddrErr(f"Error: Unable to resolve '{hostname}': {msg}")
+
+
+def addr_check(addr: str):
+    # Special cases which are fine to use
+    if addr.lower().startswith('http://integration/'):
+        return  # The only internal call which is allowed
+
+    try:
+        _addr = ipaddress.ip_address(addr)
+        check_ip_address(_addr)
+        return  # OK
+    except ValueError:
+        pass
+
+    parsed = urllib.parse.urlparse(addr)
+    if parsed.hostname:
+        addr = parsed.hostname
+
+    if "/" not in addr:
+        ip_addresses = get_dns_info(addr)
+
+        for ip_address in ip_addresses:
+            _addr = ipaddress.ip_address(ip_address)
+            check_ip_address(_addr)
+
+        return  # OK
+
+    raise InvalidAddrErr("Unknown/Invalid address: '{addr}'")
+
+
+if __name__ == "__main__":
+    addr_check('https://google.com')
+    addr_check('HTTPS://google.com:443/a?b=c')
+    addr_check('www.infrasonar.com')
+    addr_check('8.8.4.4')
+    addr_check('2345:0425:2CA1:0000:0000:0567:5673:23b5')
+    for addr in (
+        '10.10.10.1',
+        '192.168.1.1',
+        '::1',
+        'localhost',
+        'bla bla',
+        'FC00::/7',
+        'FD00::45:AA:1/7',
+    ):
+        try:
+            addr_check(addr)
+        except Exception:
+            pass
+        else:
+            raise Exception(f'Exception not raised for addr: {addr}')
