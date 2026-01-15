@@ -55,7 +55,7 @@ def get_dns_info(hostname) -> list[str]:
 
 
 def addr_check(addr: str):
-    if addr.lower().startswith('http://integration/'):
+    if addr.lower().startswith('http://integrations/'):
         return  # The only internal call which is allowed
 
     try:
@@ -87,6 +87,11 @@ if __name__ == "__main__":
     addr_check('www.infrasonar.com')
     addr_check('8.8.4.4')
     addr_check('2345:0425:2CA1:0000:0000:0567:5673:23b5')
+    addr_check('http://integrations/HaloPSA/scope')
+    addr_check('https://api.infrasonar.com/alert/ks/close')
+    addr_check('https://hooks.slack.com/services/T53FYV161/B083ZHX84D9/s')
+    addr_check('https://nomoa.staging.beech.it/api/alert')
+
     for addr in (
         '10.10.10.1',
         '192.168.1.1',
