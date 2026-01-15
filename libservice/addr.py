@@ -100,6 +100,7 @@ if __name__ == "__main__":
         'bla bla',
         'FC00::/7',
         'FD00::45:AA:1/7',
+        'not.resolvable',
     ):
         try:
             r(addr_check(addr))
