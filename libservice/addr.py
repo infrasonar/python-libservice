@@ -1,4 +1,5 @@
 import socket
+import asyncio
 import urllib.parse
 import ipaddress
 import socket
@@ -30,19 +31,16 @@ def check_ip_address(
         raise PrivateAddrErr(f"Error: Private IP address: {addr}")
 
 
-def get_dns_info(hostname) -> list[str]:
+async def get_dns_info(hostname) -> list[str]:
+    loop = asyncio.get_running_loop()
     try:
-        results = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC)
+        results = await loop.getaddrinfo(hostname, None,
+                                         family=socket.AF_UNSPEC)
         ip_addresses = []
-        ip_addresses = []
-
         for result in results:
             family, _, _, _, sockaddr = result
             address = sockaddr[0]
-
-            if family == socket.AF_INET:
-                ip_addresses.append(address)
-            elif family == socket.AF_INET6:
+            if family in (socket.AF_INET, socket.AF_INET6):
                 ip_addresses.append(address)
 
         if not ip_addresses:
@@ -54,7 +52,7 @@ def get_dns_info(hostname) -> list[str]:
         raise ResolveAddrErr(f"Error: Unable to resolve '{hostname}': {msg}")
 
 
-def addr_check(addr: str):
+async def addr_check(addr: str):
     if addr.lower().startswith('http://integrations/'):
         return  # The only internal call which is allowed
 
@@ -70,7 +68,7 @@ def addr_check(addr: str):
         addr = parsed.hostname
 
     if "/" not in addr:
-        ip_addresses = get_dns_info(addr)
+        ip_addresses = await get_dns_info(addr)
 
         for ip_address in ip_addresses:
             _addr = ipaddress.ip_address(ip_address)
@@ -82,15 +80,17 @@ def addr_check(addr: str):
 
 
 if __name__ == "__main__":
-    addr_check('https://google.com')
-    addr_check('HTTPS://google.com:443/a?b=c')
-    addr_check('www.infrasonar.com')
-    addr_check('8.8.4.4')
-    addr_check('2345:0425:2CA1:0000:0000:0567:5673:23b5')
-    addr_check('http://integrations/HaloPSA/scope')
-    addr_check('https://api.infrasonar.com/alert/ks/close')
-    addr_check('https://hooks.slack.com/services/T53FYV161/B083ZHX84D9/s')
-    addr_check('https://nomoa.staging.beech.it/api/alert')
+    loop = asyncio.new_event_loop()
+    r = loop.run_until_complete
+    r(addr_check('https://google.com'))
+    r(addr_check('HTTPS://google.com:443/a?b=c'))
+    r(addr_check('www.infrasonar.com'))
+    r(addr_check('8.8.4.4'))
+    r(addr_check('2345:0425:2CA1:0000:0000:0567:5673:23b5'))
+    r(addr_check('http://integrations/HaloPSA/scope'))
+    r(addr_check('https://api.infrasonar.com/alert/ks/close'))
+    r(addr_check('https://hooks.slack.com/services/T53FYV161/B083ZHX84D9/s'))
+    r(addr_check('https://nomoa.staging.beech.it/api/alert'))
 
     for addr in (
         '10.10.10.1',
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         'FD00::45:AA:1/7',
     ):
         try:
-            addr_check(addr)
+            r(addr_check(addr))
         except Exception:
             pass
         else:
