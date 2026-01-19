@@ -42,7 +42,7 @@ MAX_REDIRECTS = 5
 
 def get_connector(verify_ssl: bool,
                   loop: asyncio.AbstractEventLoop | None = None
-                  ) -> aiohttp.TCPConnector:
+                  ) -> 'aiohttp.TCPConnector':
     if _aiohttp is None:
         raise ImportError("aiohttp is not installed")
 
@@ -69,7 +69,7 @@ async def safe_get(uri: str,
                    verify_ssl: bool = False,
                    allow_redirects: bool | int = False,
                    loop: asyncio.AbstractEventLoop | None = None
-                   ) -> aiohttp.ClientResponse:
+                   ) -> 'aiohttp.ClientResponse':
     """
     Performs a GET request while validating redirects to prevent SSRF.
     """
