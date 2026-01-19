@@ -82,10 +82,10 @@ async def safe_get(uri: str,
         if allow_redirects is True else \
         1 if allow_redirects is False else max(1, allow_redirects)
 
-    async with aiohttp.ClientSession(timeout=aiohttp_timeout,
-                                     connector=connector,
-                                     headers={'User-Agent': user_agent}
-                                     ) as session:
+    async with _aiohttp.ClientSession(timeout=aiohttp_timeout,
+                                      connector=connector,
+                                      headers={'User-Agent': user_agent}
+                                      ) as session:
         for _ in range(max_redirects):
             await addr_check(current_uri)
             async with session.get(current_uri,
