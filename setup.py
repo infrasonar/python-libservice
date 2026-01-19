@@ -6,8 +6,8 @@ twine upload --repository pypitest dist/libservice-x.x.x.tar.gz
 twine upload --repository pypi dist/libservice-x.x.x.tar.gz
 """
 from setuptools import setup, find_packages
-from version import __version__ as version
 
+VERSION = '1.0.2'
 try:
     with open('README.md', 'r') as f:
         long_description = f.read()
@@ -21,10 +21,11 @@ install_requires = [
     'python-thingsdb',
 ]
 
+
 setup(
     name='libservice',
     packages=find_packages(),
-    version=version,
+    version=VERSION,
     description='Library for building InfraSonar services',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -33,7 +34,7 @@ setup(
     url='https://github.com/infrasonar/python-libservice',
     download_url=(
         'https://github.com/infrasonar/'
-        'python-libservice/tarball/v{}'.format(version)),
+        'python-libservice/tarball/v{}'.format(VERSION)),
     keywords=['monitoring', 'infrasonar', 'service'],
     install_requires=install_requires,
     classifiers=[
