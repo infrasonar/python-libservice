@@ -23,3 +23,15 @@ class NoCountException(Exception):  # Only to be used within CheckBase
         assert isinstance(result, dict)
         self.result = result
         super().__init__('No count exception')
+
+
+class RedirectException(Exception):
+    pass
+
+
+class RedirectsNotAllowed(RedirectException):
+    pass
+
+
+class TooManyRedirects(RedirectException):
+    pass

@@ -4,6 +4,7 @@ import ssl
 from urllib.parse import urlparse
 from typing import TYPE_CHECKING
 from .addr import addr_check
+from .exceptions import TooManyRedirects, RedirectsNotAllowed
 if TYPE_CHECKING:
     import aiohttp
 try:
@@ -90,10 +91,9 @@ async def safe_get(uri: str,
             await addr_check(current_uri)
             async with session.get(current_uri,
                                    allow_redirects=False) as resp:
-                if resp.status not in (301, 302, 303, 307, 308):
+                if allow_redirects is False or \
+                        resp.status not in (301, 302, 303, 307, 308):
                     return resp
-                if allow_redirects is False:
-                    raise Exception('Redirects not allowed')
                 next_url = resp.headers.get('Location')
                 if not next_url:
                     break
@@ -105,4 +105,4 @@ async def safe_get(uri: str,
                     current_uri = next_url
                 continue
 
-    raise Exception('Too many redirects')
+    raise TooManyRedirects('Too many redirects')
