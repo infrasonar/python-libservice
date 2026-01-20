@@ -7,7 +7,7 @@ twine upload --repository pypi dist/libservice-x.x.x*
 """
 from setuptools import setup, find_packages
 
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 try:
     with open('README.md', 'r') as f:
         long_description = f.read()
